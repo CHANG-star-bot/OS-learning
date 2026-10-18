@@ -1,0 +1,159 @@
+<div id="os-five-states">
+  <style>
+    #os-five-states .course-position { margin-bottom:12px; }
+    #os-five-states h3 { margin:0 80px 8px 0; }
+    #os-five-states .map { position:relative; margin:10px 0; }
+    #os-five-states .state-map { width:100%; display:block; }
+    #os-five-states .state-map text { fill:var(--foreground); font-weight:400; }
+    #os-five-states .state-map .name { font-weight:500; }
+    #os-five-states .state-map .caption { fill:var(--muted-foreground); }
+    #os-five-states .state-map .node { fill:var(--muted); stroke:none; }
+    #os-five-states .state-map .node.current { fill:color-mix(in srgb,var(--viz-series-1) 20%,var(--background)); }
+    #os-five-states .state-map .edge { fill:none; stroke:var(--muted-foreground); stroke-opacity:.65; stroke-width:1.5; }
+    #os-five-states .state-map .edge.current { stroke:var(--viz-series-1); stroke-opacity:1; stroke-width:2; }
+    #os-five-states .process-marker { position:absolute; top:0; left:0; width:26px; height:26px; display:flex; align-items:center; justify-content:center; background:var(--primary); color:var(--primary-foreground); border-radius:50%; pointer-events:none; }
+    #os-five-states.interaction-started .process-marker { transition:transform .4s ease; }
+    #os-five-states .step-heading { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; margin:8px 0; font-weight:500; }
+    #os-five-states .resource-flow { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; padding:12px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+    #os-five-states .resource { display:flex; flex-direction:column; gap:6px; }
+    #os-five-states .resource-label { display:flex; gap:6px; align-items:center; }
+    #os-five-states .resource-value { min-height:24px; font-weight:500; }
+    #os-five-states .cause-chain { display:grid; grid-template-columns:78px 1fr; gap:9px 10px; padding:14px 0; }
+    #os-five-states .cause-label { color:var(--muted-foreground); }
+    #os-five-states .current-event { min-height:26px; }
+    #os-five-states .detail-section { margin-top:14px; }
+    #os-five-states .answer { min-height:26px; margin-top:10px; }
+    #os-five-states .quiz-question { margin:12px 0; font-weight:500; }
+    #os-five-states .micro-map { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin:12px 0; }
+    #os-five-states .micro-map span { padding:6px 0; }
+    #os-five-states .sources { margin-top:14px; }
+    @media(max-width:440px) {
+      #os-five-states .resource-flow { gap:8px; }
+      #os-five-states .resource-label { flex-wrap:wrap; }
+      #os-five-states .cause-chain { grid-template-columns:64px 1fr; gap:8px; }
+      #os-five-states h3 { margin-right:60px; }
+    }
+    @media(prefers-reduced-motion:reduce) { #os-five-states.interaction-started .process-marker { transition:none; } }
+  </style>
+  <div class="course-position text-small text-muted">硬件 → 进程管理〔当前〕→ 调度 / 同步 / 内存 → I/O 与文件</div>
+  <h3>一个进程，从创建到结束</h3>
+  <div class="text-small text-muted">教材 3.2.2—3.2.3 · 68—71页 · 图3.6</div>
+  <div class="micro-map" aria-label="两状态模型的未运行态细分为就绪态和阻塞态"><span>上一课：未运行</span><span aria-hidden="true">→</span><span>就绪：只等 CPU</span><span aria-hidden="true">／</span><span>阻塞：还等事件</span></div>
+  <div class="step-heading"><span data-step-title>① 创建阅读任务 A</span><span class="text-small text-muted tabular-nums" data-counter>1 / 9</span></div>
+  <div class="current-event" data-event aria-live="polite">创建 → 新建态</div>
+  <div class="viz-controls"><button class="btn" type="button" data-prev disabled>上一步</button><button class="btn btn-primary" type="button" data-next>接纳 A，进入就绪</button></div>
+  <div class="map" data-map>
+    <svg class="state-map" data-svg role="img" aria-label="五状态图：新建经接纳到就绪，就绪经调度到运行，运行可因超时回到就绪、因等待事件进入阻塞、因结束进入退出，阻塞经事件到达回到就绪。"></svg>
+    <span class="process-marker" data-marker aria-hidden="true">A</span>
+  </div>
+  <div class="resource-flow" aria-label="事件处理后CPU和等待队列的状态">
+    <div class="resource"><span class="resource-label"><i data-lucide="cpu" aria-hidden="true"></i>CPU 执行谁</span><span class="resource-value" data-cpu>B：后台任务</span></div>
+    <div class="resource"><span class="resource-label"><i data-lucide="list-ordered" aria-hidden="true"></i>就绪队列</span><span class="resource-value" data-ready>空</span></div>
+    <div class="resource"><span class="resource-label"><i data-lucide="hourglass" aria-hidden="true"></i>阻塞队列</span><span class="resource-value" data-blocked>空</span></div>
+  </div>
+  <div class="cause-chain" aria-label="当前事件的现象、操作系统动作与硬件联系">
+    <span class="cause-label">实际场景</span><span data-phenomenon>启动一个简化的 PDF 阅读任务 A</span>
+    <span class="cause-label">系统动作</span><span data-os>分配进程标识，建立进程控制块 PCB</span>
+    <span class="cause-label">硬件联系</span><span data-hardware>内存中已有管理记录；A 尚未获得 CPU</span>
+  </div>
+  <div class="sources text-small text-muted">教学模拟：一个 CPU 执行位置、单线程进程 A/B；每步展示事件处理后的状态</div>
+
+  <details class="detail-section">
+    <summary>补基础：五个状态各在等什么？</summary>
+    <table class="table table-sm"><thead><tr><th>状态</th><th>此刻的关键条件</th></tr></thead><tbody>
+      <tr><td>新建</td><td>已创建管理记录，尚未被接纳到可执行进程组</td></tr>
+      <tr><td>就绪</td><td>具备执行条件，只等 CPU</td></tr>
+      <tr><td>运行</td><td>正在由 CPU 执行</td></tr>
+      <tr><td>阻塞 / 等待</td><td>等待某个必需事件；此时有 CPU 也不能继续下一步</td></tr>
+      <tr><td>退出</td><td>不再执行；系统可暂留退出信息，之后再清理</td></tr>
+    </tbody></table>
+  </details>
+  <details class="detail-section">
+    <summary>回到 3.2.2：为什么创建、为什么终止？</summary>
+    <table class="table table-sm"><tbody>
+      <tr><th>创建入口<br>表3.1</th><td>新批处理作业 ／ 用户登录 ／ 系统为提供服务而创建 ／ 已有进程派生</td></tr>
+      <tr><th>父进程 → 子进程</th><td>已有进程请求创建另一个进程；由操作系统实际完成创建</td></tr>
+      <tr><th>终止原因<br>表3.2，举例</th><td>正常完成 ／ 不可恢复错误 ／ 超过规定限制 ／ 系统或有权限的其他进程终止</td></tr>
+    </tbody></table>
+    <div class="micro-map"><span>时间片用完</span><span aria-hidden="true">→</span><span>就绪，等下次继续</span></div>
+    <div class="micro-map"><span>超过允许的总时限</span><span aria-hidden="true">→</span><span>可能被终止</span></div>
+  </details>
+  <details class="detail-section">
+    <summary>按考试题型练：根据事件判断状态</summary>
+    <label class="form-label" for="five-quiz">情境</label><select class="form-select" id="five-quiz" data-quiz><option value="timeout">时间片用完</option><option value="wait">请求必须等待的 I/O</option><option value="wake">等待的数据到达</option></select>
+    <div class="quiz-question" data-question>A 正在运行，时间片用完，但任务还没完成。A 转为什么状态？</div>
+    <div class="viz-controls" aria-label="选择A接下来的状态"><button class="btn" type="button" data-answer="run">运行态</button><button class="btn" type="button" data-answer="ready">就绪态</button><button class="btn" type="button" data-answer="blocked">阻塞态</button></div>
+    <div class="answer" data-feedback aria-live="polite">同考点自编练习 · 参照浙工大2016/2017卷单选第4题</div>
+  </details>
+  <details class="detail-section">
+    <summary>模型边界：实际电脑有哪些不同？</summary>
+    <table class="table table-sm"><tbody>
+      <tr><th>读取 PDF</th><td>假设本次同步读取的数据尚未就绪；命中缓存或采用异步 I/O 时，流程可能不同</td></tr>
+      <tr><th>新建与内存</th><td>按本节忽略虚存的模型理解“接纳/加载”；现代系统不要求先把整个程序装入物理内存</td></tr>
+      <tr><th>硬件与系统</th><td>CPU 也会执行操作系统代码；设备完成 I/O 通常通过中断通知系统</td></tr>
+      <tr><th>运行数量</th><td>真实电脑可有多个逻辑处理器，并以线程为调度对象</td></tr>
+      <tr><th>运行 → 就绪</th><td>除了时间片用完，还可能因更高优先级进程抢占、主动让出 CPU 等原因发生</td></tr>
+      <tr><th>特殊终止</th><td>教材70页还说明就绪/阻塞进程可能被终止；图3.6为简洁省略了这些箭头</td></tr>
+    </tbody></table>
+  </details>
+  <script>
+    (()=>{
+      const root=document.getElementById('os-five-states');
+      const q=s=>root.querySelector(s),qa=s=>Array.from(root.querySelectorAll(s));
+      const steps=[
+        {state:'new',edge:null,title:'① 创建阅读任务 A',event:'创建 → 新建态',cpu:'B：后台任务',ready:'空',blocked:'空',phenomenon:'启动一个简化的 PDF 阅读任务 A',os:'给 A 分配身份编号，建立管理记录（进程控制块 PCB）',hardware:'内存中已有管理记录；A 尚未获得 CPU',next:'接纳 A，进入就绪'},
+        {state:'ready',edge:'admit',title:'② A 已准备好，先排队',event:'新建 → 就绪：接纳（图3.6标“加载”）',cpu:'B：后台任务',ready:'A',blocked:'空',phenomenon:'A 已具备执行条件，CPU 此刻仍给 B 使用',os:'将 A 接纳到可执行进程组，加入就绪队列',hardware:'安排运行所需的代码与数据；A 等待 CPU',next:'调度 A，开始运行'},
+        {state:'run',edge:'dispatch',title:'③ 轮到 A 使用 CPU',event:'就绪 → 运行：调度',cpu:'A：阅读任务',ready:'B',blocked:'空',phenomenon:'示例中 B 先交出 CPU，轮到 A 执行',os:'选中 A，恢复它的执行现场',hardware:'CPU 开始执行 A 的指令；B 的现场被保存',next:'A 时间片到，换 B'},
+        {state:'ready',edge:'timeout',title:'④ A 没结束，只是轮换',event:'运行 → 就绪：时间片用完（超时）',cpu:'B：后台任务',ready:'A',blocked:'空',phenomenon:'A 的这次连续使用时间用完，任务仍未完成',os:'保存 A 的现场，将 A 放回就绪队列',hardware:'CPU 改为执行 B；A 的代码与数据无需整体搬走',next:'再次调度 A'},
+        {state:'run',edge:'dispatch',title:'⑤ A 接着上次的位置执行',event:'就绪 → 运行：再次调度',cpu:'A：阅读任务',ready:'B',blocked:'空',phenomenon:'A 再次获得执行机会，继续处理 PDF',os:'恢复 A 保存的执行位置与寄存器等现场',hardware:'CPU 从 A 保存的位置继续，不是从头启动',next:'A 请求读取未就绪的数据'},
+        {state:'blocked',edge:'wait',title:'⑥ A 必须等数据，先停下来',event:'运行 → 阻塞：等待必需的 I/O',cpu:'B：后台任务',ready:'空',blocked:'A：等文件数据',phenomenon:'假设要读的那部分 PDF 数据不在缓存中，尚未读到',os:'提交读取请求，保存 A 的现场，使 A 等待；改选 B',hardware:'存储设备处理读取，CPU 可以执行 B 的指令',next:'文件数据到达'},
+        {state:'ready',edge:'wake',title:'⑦ 数据到了，但还没轮到 CPU',event:'阻塞 → 就绪：所等事件发生',cpu:'B：后台任务',ready:'A',blocked:'空',phenomenon:'A 等待的数据已可用；本例让 B 继续执行',os:'处理完成通知，唤醒 A，把它加入就绪队列',hardware:'设备控制器通常发出中断，CPU 转入系统处理后继续',next:'再调度 A'},
+        {state:'run',edge:'dispatch',title:'⑧ A 获得 CPU，处理读到的数据',event:'就绪 → 运行：调度',cpu:'A：阅读任务',ready:'B',blocked:'空',phenomenon:'现在 A 既有数据，也获得了 CPU',os:'恢复 A 的现场，使它继续执行',hardware:'CPU 执行处理数据的指令；结果随后用于显示',next:'A 正常完成'},
+        {state:'exit',edge:'release',title:'⑨ A 的这次执行结束',event:'运行 → 退出：正常完成并释放',cpu:'B：后台任务',ready:'空',blocked:'空',phenomenon:'简化任务 A 已完成；不表示所有真实阅读器都自动关闭',os:'终止 A 的执行，可暂留退出信息，之后清理相关记录',hardware:'CPU 不再执行 A；已保存的 PDF 文件仍可留在磁盘',next:'本轮结束'}
+      ];
+      const states={new:['新建','尚未接纳'],ready:['就绪','只等 CPU'],run:['运行','正在执行'],blocked:['阻塞','等必需事件'],exit:['退出','不再执行']};
+      const quizzes={timeout:{question:'A 正在运行，时间片用完，但任务还没完成。A 转为什么状态？',correct:'ready',step:3,reason:'时间片用完只表示本次 CPU 配额用完；任务未结束，A 仍具备运行条件。',source:'同考点自编练习 · 参照浙工大2016/2017卷单选第4题'},wait:{question:'A 发起必须等待完成的文件读取，数据尚未就绪。A 转为什么状态？',correct:'blocked',step:5,reason:'A 的下一步依赖未到的数据；即使给 CPU，暂时也无法继续。',source:'教材自编状态判断题 · 不是往年原题'},wake:{question:'A 阻塞等待文件数据，B 正在运行。A 等的数据到了，A 先转为什么状态？',correct:'ready',step:6,reason:'数据到达补齐执行条件；A 先就绪，获得 CPU 仍需要调度。',source:'教材自编状态判断题 · 不是往年原题'}};
+      let step=0,answer=null,positions=null,quiz='timeout';
+      const saved=window.openai&&window.openai.widgetState;
+      const prior=saved&&saved.privateContent;
+      if(prior&&prior.lesson==='five-states'&&Number.isInteger(prior.step)&&prior.step>=0&&prior.step<steps.length){step=prior.step;answer=['run','ready','blocked'].includes(prior.answer)?prior.answer:null;quiz=quizzes[prior.quiz]?prior.quiz:'timeout';}
+      function save(){if(window.openai&&window.openai.setWidgetState)window.openai.setWidgetState({modelContent:{lesson:'3.2.2—3.2.3 进程创建终止与五状态',step:step+1,state:steps[step].state,quiz,answer},privateContent:{lesson:'five-states',step,quiz,answer}}).catch(()=>{});}
+      function draw(){
+        const width=q('[data-map]').clientWidth;if(!width)return;const compact=width<560;
+        const half=compact?51:52,height=compact?366:300;
+        positions=compact?{new:[width*.25,48],ready:[width*.75,48],run:[width*.75,188],blocked:[width*.25,188],exit:[width*.75,324]}:{new:[width*.10,72],ready:[width*.34,72],run:[width*.64,72],blocked:[width*.42,242],exit:[width*.90,72]};
+        const p=positions;
+        const edges=compact?[
+          ['admit',`M ${p.new[0]+half},48 L ${p.ready[0]-half},48`,width*.5,31,'接纳'],
+          ['dispatch',`M ${p.ready[0]+16},79 L ${p.run[0]+16},157`,p.ready[0]+30,120,'调度'],
+          ['timeout',`M ${p.run[0]-16},157 L ${p.ready[0]-16},79`,p.ready[0]-34,120,'超时'],
+          ['wait',`M ${p.run[0]-half},188 L ${p.blocked[0]+half},188`,width*.5,174,'等待'],
+          ['wake',`M ${p.blocked[0]+20},157 L ${p.ready[0]-22},79`,width*.43,111,'事件到达'],
+          ['release',`M ${p.run[0]},219 L ${p.exit[0]},293`,p.run[0]+27,260,'释放']
+        ]:[
+          ['admit',`M ${p.new[0]+half},72 L ${p.ready[0]-half},72`,width*.22,54,'接纳'],
+          ['dispatch',`M ${p.ready[0]+half},58 L ${p.run[0]-half},58`,width*.49,42,'调度'],
+          ['timeout',`M ${p.run[0]-half},86 L ${p.ready[0]+half},86`,width*.49,107,'超时'],
+          ['wait',`M ${p.run[0]-12},104 L ${p.blocked[0]+24},211`,width*.58,167,'等待事件'],
+          ['wake',`M ${p.blocked[0]-20},211 L ${p.ready[0]+5},104`,width*.31,169,'事件到达'],
+          ['release',`M ${p.run[0]+half},72 L ${p.exit[0]-half},72`,width*.77,54,'释放']
+        ];
+        const svg=q('[data-svg]');svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('height',height);
+        let html='<title>五状态进程模型：A 当前处于'+states[steps[step].state][0]+'态</title><defs><marker id="five-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 Z" fill="var(--border)"/></marker><marker id="five-arrow-active" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 Z" fill="var(--viz-series-1)"/></marker></defs>';
+        edges.forEach(([id,path,x,y,label])=>{const active=steps[step].edge===id;html+=`<path class="edge${active?' current':''}" d="${path}" marker-end="url(#five-arrow${active?'-active':''})"/><text x="${x}" y="${y}" text-anchor="middle" style="font-size:12px">${label}</text>`;});
+        Object.entries(p).forEach(([id,[x,y]])=>{const active=steps[step].state===id;html+=`<rect class="node${active?' current':''}" x="${x-half}" y="${y-31}" width="${half*2}" height="62" rx="10"/><text class="name" x="${x}" y="${y-5}" text-anchor="middle">${states[id][0]}</text><text class="caption" x="${x}" y="${y+16}" text-anchor="middle" style="font-size:12px">${states[id][1]}</text>`;});
+        svg.innerHTML=html;
+        const [x,y]=p[steps[step].state];q('[data-marker]').style.transform=`translate(${x+half-13}px,${y-44}px)`;
+      }
+      function feedback(){const z=quizzes[quiz];q('[data-quiz]').value=quiz;q('[data-question]').textContent=z.question;q('[data-feedback]').textContent=answer?((answer===z.correct?'判断正确。':'应转为'+states[z.correct][0]+'态。')+z.reason):z.source;qa('[data-answer]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.answer===answer)));}
+      function render(){const s=steps[step];[['title','step-title'],['event','event'],['cpu','cpu'],['ready','ready'],['blocked','blocked'],['phenomenon','phenomenon'],['os','os'],['hardware','hardware']].forEach(([key,attr])=>q('[data-'+attr+']').textContent=s[key]);q('[data-counter]').textContent=(step+1)+' / '+steps.length;q('[data-prev]').disabled=step===0;q('[data-next]').disabled=step===steps.length-1;q('[data-next]').textContent=s.next;draw();feedback();}
+      q('[data-next]').addEventListener('click',()=>{if(step<steps.length-1){root.classList.add('interaction-started');step++;render();save();}});
+      q('[data-prev]').addEventListener('click',()=>{if(step>0){root.classList.add('interaction-started');step--;render();save();}});
+      qa('[data-answer]').forEach(b=>b.addEventListener('click',()=>{root.classList.add('interaction-started');answer=b.dataset.answer;step=quizzes[quiz].step;render();save();}));
+      q('[data-quiz]').addEventListener('change',()=>{quiz=q('[data-quiz]').value;answer=null;feedback();save();});
+      new ResizeObserver(()=>{root.classList.remove('interaction-started');draw();}).observe(q('[data-map]'));
+      window.addEventListener('openai:set_globals',e=>{const s=e.detail&&e.detail.globals&&e.detail.globals.widgetState;const p=s&&s.privateContent;if(p&&p.lesson==='five-states'&&Number.isInteger(p.step)&&p.step>=0&&p.step<steps.length){step=p.step;answer=['run','ready','blocked'].includes(p.answer)?p.answer:null;quiz=quizzes[p.quiz]?p.quiz:'timeout';render();}});
+      render();
+    })();
+  </script>
+</div>
