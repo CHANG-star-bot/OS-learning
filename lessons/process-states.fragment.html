@@ -1,0 +1,175 @@
+<div id="os-process-lab">
+  <style>
+    #os-process-lab .scene { padding-top:16px; }
+    #os-process-lab .diagram { position:relative; margin:18px 0; }
+    #os-process-lab .hardware { display:grid; grid-template-columns:1fr 36px 1fr 36px 1fr; align-items:center; gap:4px; }
+    #os-process-lab .part { min-height:140px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; text-align:center; }
+    #os-process-lab .part svg { width:48px; height:48px; }
+    #os-process-lab .part-name { font-weight:500; }
+    #os-process-lab .part-mark { background:var(--muted); border-radius:8px; width:100%; min-height:54px; display:flex; align-items:center; justify-content:center; padding:8px; box-sizing:border-box; }
+    #os-process-lab .part-mark.active { background:color-mix(in srgb,var(--viz-series-1) 16%,transparent); }
+    #os-process-lab .arrow { text-align:center; color:var(--muted-foreground); }
+    #os-process-lab .step-line { display:flex; justify-content:space-between; gap:6px; margin:20px 0 12px; }
+    #os-process-lab .step-line span { flex:1; padding-top:8px; border-top:3px solid var(--border); }
+    #os-process-lab .step-line .done { border-top-color:var(--viz-series-1); }
+    #os-process-lab .os-band { display:flex; align-items:center; justify-content:center; gap:8px; padding:14px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+    #os-process-lab .board { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:18px; }
+    #os-process-lab .zone-label { margin-bottom:12px; display:flex; align-items:center; gap:8px; font-weight:500; }
+    #os-process-lab .execution-area { position:relative; height:100px; background:var(--muted); border-radius:10px; }
+    #os-process-lab .execution-area.running { background:color-mix(in srgb,var(--viz-series-1) 12%,transparent); }
+    #os-process-lab .token { position:absolute; top:20px; width:calc((100% - 18px)/2 - 32px); height:60px; display:flex; align-items:center; justify-content:center; gap:8px; border-radius:8px; background:var(--card); color:var(--card-foreground); border:1px solid var(--border); transition:left .45s ease,top .45s ease; box-sizing:border-box; }
+    #os-process-lab .token .dot { width:9px; height:9px; background:var(--viz-series-1); border-radius:50%; }
+    #os-process-lab .token[data-process="B"] .dot { background:var(--viz-series-2); }
+    #os-process-lab .token-layer { position:absolute; top:44px; left:0; right:0; height:100px; pointer-events:none; }
+    #os-process-lab .pcbs { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin:18px 0; }
+    #os-process-lab .pcb { padding:12px 0; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:5px; }
+    #os-process-lab .pcb strong { font-weight:500; }
+    #os-process-lab .register { display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; padding:14px 0; }
+    #os-process-lab .register code { font-variant-numeric:tabular-nums; }
+    #os-process-lab .current-detail { min-height:24px; margin:10px 0; }
+    #os-process-lab .app-row { display:grid; grid-template-columns:105px 1fr 70px; gap:12px; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); }
+    #os-process-lab .process-dots { display:flex; flex-wrap:wrap; gap:5px; }
+    #os-process-lab .process-dot { width:12px; height:12px; background:color-mix(in srgb,var(--viz-series-1) 55%,transparent); border-radius:3px; }
+    #os-process-lab .cpu-grid { display:grid; grid-template-columns:repeat(12,1fr); gap:5px; margin:12px 0; }
+    #os-process-lab .logical-cpu { text-align:center; background:var(--muted); padding:6px 0; border-radius:3px; }
+    #os-process-lab .sample { display:flex; align-items:center; flex-wrap:wrap; justify-content:center; gap:14px; margin:16px 0; }
+    #os-process-lab .sample-value { padding:10px; background:var(--muted); border-radius:6px; }
+    #os-process-lab h3 { margin:0 0 8px; padding-right:75px; }
+    #os-process-lab [hidden] { display:none !important; }
+    @media(max-width:480px) {
+      #os-process-lab .hardware { grid-template-columns:1fr; gap:0; }
+      #os-process-lab .part { min-height:70px; flex-direction:row; justify-content:flex-start; text-align:left; gap:12px; }
+      #os-process-lab .part svg { width:30px; height:30px; flex-shrink:0; }
+      #os-process-lab .part-mark { min-height:40px; flex:1; }
+      #os-process-lab .arrow { transform:rotate(90deg); }
+      #os-process-lab .step-line { flex-wrap:wrap; }
+      #os-process-lab .step-line span { flex:0 0 calc(50% - 3px); }
+      #os-process-lab .cpu-grid { grid-template-columns:repeat(6,1fr); }
+      #os-process-lab .app-row { grid-template-columns:70px 1fr 82px; gap:8px; }
+      #os-process-lab .process-dot { width:10px; height:10px; }
+      #os-process-lab .board { gap:12px; }
+      #os-process-lab .token { width:calc((100% - 12px)/2 - 20px); }
+      #os-process-lab .pcbs { gap:12px; }
+    }
+    @media(prefers-reduced-motion:reduce) { #os-process-lab .token { transition:none; } }
+  </style>
+  <div class="viz-controls" aria-label="学习场景">
+    <button type="button" class="btn btn-primary" data-scene="launch" aria-pressed="true">① 软件怎么跑起来</button>
+    <button type="button" class="btn" data-scene="switch" aria-pressed="false">② 让 CPU 换个人</button>
+    <button type="button" class="btn" data-scene="computer" aria-pressed="false">③ 对照真实电脑</button>
+  </div>
+
+  <section class="scene" data-panel="launch" aria-label="软件启动与硬件">
+    <h3>软件文件 → 进程 → CPU 执行</h3>
+    <div class="text-small text-muted">概念演示 · 不代表本机此刻的硬件活动</div>
+    <div class="hardware diagram" role="img" aria-label="SSD保存程序文件，内存存放运行需要的代码和数据，CPU执行指令，操作系统管理启动和资源">
+      <div class="part"><i data-lucide="hard-drive" aria-hidden="true"></i><span class="part-name">SSD / 硬盘</span><div class="part-mark">程序文件</div></div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div class="part"><i data-lucide="memory-stick" aria-hidden="true"></i><span class="part-name">内存 RAM</span><div class="part-mark" data-mark="ram">尚未启动</div></div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div class="part"><i data-lucide="cpu" aria-hidden="true"></i><span class="part-name">CPU</span><div class="part-mark" data-mark="cpu">尚未执行</div></div>
+    </div>
+    <div class="os-band"><i data-lucide="settings" aria-hidden="true"></i><span data-launch-os>操作系统：等待启动请求</span></div>
+    <div class="step-line text-small" aria-label="启动阶段"><span data-stage="0" class="done">文件存在</span><span data-stage="1">建立进程</span><span data-stage="2">准备内存</span><span data-stage="3">获得 CPU</span></div>
+    <div class="viz-controls"><button type="button" class="btn btn-primary" data-launch-next>双击启动</button><span class="text-small text-muted" data-launch-counter>1 / 4</span></div>
+    <div class="current-detail" data-launch-detail aria-live="polite">文件存在 ≠ 此刻正在执行</div>
+  </section>
+
+  <section class="scene" data-panel="switch" aria-label="两状态进程实验" hidden>
+    <h3>谁拿到 CPU，谁就在运行态</h3>
+    <div class="text-small text-muted">教材 3.2.1 · 教学模型：一个执行位置、每个进程只有一个线程</div>
+    <div class="diagram">
+      <div class="board">
+        <div><div class="zone-label"><i data-lucide="cpu" aria-hidden="true"></i>运行态</div><div class="execution-area running"></div></div>
+        <div><div class="zone-label"><i data-lucide="pause" aria-hidden="true"></i>未运行态</div><div class="execution-area"></div></div>
+      </div>
+      <div class="token-layer" aria-hidden="true"><div class="token" data-process="A" style="left:16px"><span class="dot"></span>进程 A</div><div class="token" data-process="B" style="left:calc(50% + 25px)"><span class="dot"></span>进程 B</div></div>
+    </div>
+    <div class="register" aria-live="polite"><span data-cpu-owner>CPU 正在执行 A</span><code data-cpu-pc>PC → 5000</code><code data-cpu-r>寄存器 R = 2</code></div>
+    <div class="pcbs" aria-label="内存中的管理记录，切换不搬走整个程序">
+      <div class="pcb"><strong>内存中的 PCB_A</strong><span data-pcb-a>保存的 PC：5000 · R：2</span><span class="text-small text-muted">A 的代码和数据仍在内存</span></div>
+      <div class="pcb"><strong>内存中的 PCB_B</strong><span data-pcb-b>保存的 PC：8000 · R：10</span><span class="text-small text-muted">B 的代码和数据仍在内存</span></div>
+    </div>
+    <div class="viz-controls">
+      <button type="button" class="btn" data-execute>执行一条指令</button>
+      <button type="button" class="btn btn-primary" data-switch>时间片到，换 B</button>
+      <button type="button" class="btn" data-wait>当前进程等待数据</button>
+      <button type="button" class="btn" data-complete hidden>数据到达</button>
+    </div>
+    <div class="current-detail" data-switch-detail aria-live="polite">PC = 下一条指令的地址；本例每执行一条，PC 前进 1</div>
+    <div class="text-small text-muted" data-state-summary>A：运行态 · B：未运行态</div>
+    <details><summary>考点：两状态模型少区分了什么？</summary><div>未运行 ≠ 都能立刻运行：有的只等 CPU，有的还在等数据。</div></details>
+  </section>
+
+  <section class="scene" data-panel="computer" aria-label="进程与处理器示例" hidden>
+    <h3>一个软件，可以有多个进程</h3>
+    <div class="text-small text-muted">公开版示例数据 · 不读取你的电脑 · 非实时</div>
+    <div data-apps class="diagram" role="img" aria-label="示例：Chrome有14个进程，Edge有27个进程，微信Weixin有6个进程；一个方块代表一个进程"></div>
+    <div class="text-small text-muted">一个方块 = 一个示例进程 · 软件名称不等于单个进程</div>
+    <hr>
+    <div class="viz-row"><i data-lucide="cpu" aria-hidden="true"></i><span>示例：24 个逻辑处理器</span></div>
+    <div class="cpu-grid" data-cores aria-label="24个逻辑处理器的位置示意，未测量每个位置的瞬时状态"></div>
+    <div class="text-small text-muted">逻辑处理器不是物理核心数；真实系统调度线程，这里只画执行位置</div>
+    <div class="current-detail">进程存在 ≠ 正在执行；一个进程还可以有多个线程</div>
+  </section>
+  <script>
+    (() => {
+      const root = document.getElementById('os-process-lab');
+      const q = s => root.querySelector(s);
+      const qa = s => Array.from(root.querySelectorAll(s));
+      const snapshot = {
+        chrome:{label:'Chrome',count:14,pids:Array.from({length:14},(_,i)=>1001+i)},
+        msedge:{label:'Edge',count:27,pids:Array.from({length:27},(_,i)=>2001+i)},
+        Weixin:{label:'微信 Weixin',count:6,pids:Array.from({length:6},(_,i)=>3001+i)}
+      };
+      let scene='launch', launch=0, current='A', pc=5000, reg=2, pending=null, busy=false, selectedSample='msedge';
+      let records={A:{pc:5000,r:2,blocked:false},B:{pc:8000,r:10,blocked:false}};
+      const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let timer;
+      const saved = window.openai && window.openai.widgetState;
+      const privateState=saved && saved.privateContent;
+      const validState=s=>s && ['launch','switch','computer'].includes(s.scene) && Number.isInteger(s.launch) && s.launch>=0 && s.launch<=3 && ['A','B'].includes(s.current) && Number.isInteger(s.pc) && Number.isInteger(s.reg) && s.records && ['A','B'].every(k=>s.records[k] && Number.isInteger(s.records[k].pc) && Number.isInteger(s.records[k].r) && typeof s.records[k].blocked==='boolean');
+      function apply(s){if(!validState(s))return;scene=s.scene;launch=s.launch;current=s.current;pc=s.pc;reg=s.reg;records=JSON.parse(JSON.stringify(s.records));selectedSample=snapshot[s.sample]?s.sample:'msedge';renderAll();}
+      function save(){if(window.openai && window.openai.setWidgetState)window.openai.setWidgetState({modelContent:{lesson:'3.2.1 两状态进程模型',scene,current,pc,waitingForData:Object.keys(records).filter(k=>records[k].blocked)},privateContent:{scene,launch,current,pc,reg,records,sample:selectedSample}}).catch(()=>{});}
+      function renderScenes(){qa('[data-panel]').forEach(p=>p.hidden=p.dataset.panel!==scene);qa('[data-scene]').forEach(b=>{const on=b.dataset.scene===scene;b.setAttribute('aria-pressed',String(on));b.classList.toggle('btn-primary',on);});}
+      function renderLaunch(){
+        const ram=q('[data-mark="ram"]'),cpu=q('[data-mark="cpu"]');
+        ram.textContent=launch<1?'尚未启动':launch===1?'进程管理记录':'需要的代码 + 数据';
+        cpu.textContent=launch<3?'尚未执行':'取指 → 执行';
+        ram.classList.toggle('active',launch>=1);cpu.classList.toggle('active',launch===3);
+        q('[data-launch-os]').textContent=['操作系统：等待启动请求','操作系统：建立这次执行的进程','操作系统：安排运行需要的内存','操作系统：让它获得执行机会'][launch];
+        q('[data-launch-detail]').textContent=['文件存在 ≠ 此刻正在执行','进程 = 一次执行的实例，不只有代码','内存保存运行需要的内容；不是每次都装入整个程序','CPU 执行指令；操作系统本身也是 CPU 执行的软件'][launch];
+        q('[data-launch-next]').textContent=['双击启动','准备内存','交给 CPU','再看一遍'][launch];q('[data-launch-counter]').textContent=(launch+1)+' / 4';qa('[data-stage]').forEach(e=>e.classList.toggle('done',Number(e.dataset.stage)<=launch));
+      }
+      function renderSwitch(){
+        const other=current==='A'?'B':'A';
+        const leftRun=window.innerWidth<=480?'10px':'16px';const leftWait=window.innerWidth<=480?'calc(50% + 16px)':'calc(50% + 25px)';
+        ['A','B'].forEach(k=>q('[data-process="'+k+'"]').style.left=k===current?leftRun:leftWait);
+        q('[data-cpu-owner]').textContent=busy?'CPU 执行操作系统的切换代码':'CPU 正在执行 '+current;
+        q('[data-cpu-pc]').textContent=busy?'保存 / 恢复现场':'PC → '+pc;q('[data-cpu-r]').textContent=busy?'':'寄存器 R = '+reg;
+        ['A','B'].forEach(k=>{q('[data-pcb-'+k.toLowerCase()+']').textContent='保存的 PC：'+records[k].pc+' · R：'+records[k].r;});
+        q('[data-switch]').textContent='时间片到，换 '+other;
+        q('[data-execute]').disabled=busy;q('[data-switch]').disabled=busy||records[other].blocked;q('[data-wait]').disabled=busy||!!Object.values(records).find(r=>r.blocked);
+        q('[data-complete]').hidden=!Object.values(records).find(r=>r.blocked);q('[data-complete]').disabled=busy;
+        q('[data-state-summary]').textContent=busy?'切换中：CPU 执行系统代码，应用指令暂时不执行':['A','B'].map(k=>k+'：'+(k===current?'运行态':records[k].blocked?'未运行态（等待数据）':'未运行态（只等 CPU）')).join(' · ');
+      }
+      function renderAll(){renderScenes();renderLaunch();renderSwitch();}
+      function switchToOther(wait){
+        if(busy)return;const from=current,to=current==='A'?'B':'A';if(records[to].blocked)return;
+        records[from].pc=pc;records[from].r=reg;if(wait)records[from].blocked=true;
+        busy=true;renderSwitch();q('[data-switch-detail]').textContent='① 保存 '+from+' 的 PC='+pc+'、R='+reg+' → PCB_'+from;
+        timer=setTimeout(()=>{q('[data-switch-detail]').textContent='② 恢复 PCB_'+to+' 的现场 → CPU；'+from+(wait?' 等待数据':' 仍在系统中');current=to;pc=records[to].pc;reg=records[to].r;busy=false;renderSwitch();save();},reduced?0:750);
+      }
+      qa('[data-scene]').forEach(b=>b.addEventListener('click',()=>{scene=b.dataset.scene;renderScenes();renderSwitch();save();}));
+      q('[data-launch-next]').addEventListener('click',()=>{launch=(launch+1)%4;renderLaunch();save();});
+      q('[data-execute]').addEventListener('click',()=>{if(busy)return;const old=pc;pc++;reg++;renderSwitch();q('[data-switch-detail]').textContent=current+' 执行了地址 '+old+' 的演示指令；下一条在 '+pc+'（R 加 1）';save();});
+      q('[data-switch]').addEventListener('click',()=>switchToOther(false));q('[data-wait]').addEventListener('click',()=>switchToOther(true));
+      q('[data-complete]').addEventListener('click',()=>{const k=Object.keys(records).find(k=>records[k].blocked);if(!k||busy)return;records[k].blocked=false;renderSwitch();q('[data-switch-detail]').textContent=k+' 的数据到了：具备运行条件，仍要等待 CPU';save();});
+      q('[data-apps]').innerHTML=Object.values(snapshot).map(a=>'<div class="app-row"><span>'+a.label+'</span><div class="process-dots">'+a.pids.map(pid=>'<span class="process-dot" data-tooltip="示例 PID '+pid+'" aria-label="示例进程 PID '+pid+'"></span>').join('')+'</div><span>'+a.count+' 个进程</span></div>').join('');
+      q('[data-cores]').innerHTML=Array.from({length:24},(_,i)=>'<span class="logical-cpu text-small">'+(i+1)+'</span>').join('');
+      window.addEventListener('resize',renderSwitch);
+      window.addEventListener('openai:set_globals',e=>{const state=e.detail&&e.detail.globals&&e.detail.globals.widgetState;if(state&&state.privateContent&&!busy)apply(state.privateContent);});
+      renderAll();apply(privateState);
+    })();
+  </script>
+</div>
