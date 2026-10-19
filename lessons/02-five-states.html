@@ -1791,17 +1791,42 @@ html&gt;body{padding:0}&lt;/style&gt;
   &lt;style&gt;
     #os-five-states .course-position { margin-bottom:12px; }
     #os-five-states h3 { margin:0 80px 8px 0; }
-    #os-five-states .map { position:relative; margin:10px 0; }
-    #os-five-states .state-map { width:100%; display:block; }
-    #os-five-states .state-map text { fill:var(--foreground); font-weight:400; }
-    #os-five-states .state-map .name { font-weight:500; }
-    #os-five-states .state-map .caption { fill:var(--muted-foreground); }
-    #os-five-states .state-map .node { fill:var(--muted); stroke:none; }
-    #os-five-states .state-map .node.current { fill:color-mix(in srgb,var(--viz-series-1) 20%,var(--background)); }
-    #os-five-states .state-map .edge { fill:none; stroke:var(--muted-foreground); stroke-opacity:.65; stroke-width:1.5; }
-    #os-five-states .state-map .edge.current { stroke:var(--viz-series-1); stroke-opacity:1; stroke-width:2; }
-    #os-five-states .process-marker { position:absolute; top:0; left:0; width:26px; height:26px; display:flex; align-items:center; justify-content:center; background:var(--primary); color:var(--primary-foreground); border-radius:50%; pointer-events:none; }
-    #os-five-states.interaction-started .process-marker { transition:transform .4s ease; }
+    #os-five-states .map { position:relative; height:300px; max-width:736px; margin:10px auto; }
+    #os-five-states .state-map { width:100%; height:100%; position:absolute; inset:0; display:block; }
+    #os-five-states .state-map.compact { display:none; }
+    #os-five-states .state-map .edge { fill:none; stroke:var(--muted-foreground); stroke-opacity:.65; stroke-width:1.5; vector-effect:non-scaling-stroke; marker-mid:var(--normal-arrow); }
+    #os-five-states .map[data-edge=&quot;admit&quot;] .edge-admit,
+    #os-five-states .map[data-edge=&quot;dispatch&quot;] .edge-dispatch,
+    #os-five-states .map[data-edge=&quot;timeout&quot;] .edge-timeout,
+    #os-five-states .map[data-edge=&quot;wait&quot;] .edge-wait,
+    #os-five-states .map[data-edge=&quot;wake&quot;] .edge-wake,
+    #os-five-states .map[data-edge=&quot;release&quot;] .edge-release { stroke:var(--viz-series-1); stroke-opacity:1; stroke-width:2; marker-mid:var(--active-arrow); }
+    #os-five-states .state-node { position:absolute; width:104px; height:62px; box-sizing:border-box; border-radius:10px; background:linear-gradient(var(--muted),var(--muted)),var(--background); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; transform:translate(-50%,-50%); }
+    #os-five-states .state-node .name { font-weight:500; }
+    #os-five-states .state-node .caption { color:var(--muted-foreground); }
+    #os-five-states .node-new { left:10%; top:72px; }
+    #os-five-states .node-ready { left:34%; top:72px; }
+    #os-five-states .node-run { left:64%; top:72px; }
+    #os-five-states .node-blocked { left:42%; top:242px; }
+    #os-five-states .node-exit { left:90%; top:72px; }
+    #os-five-states .map[data-state=&quot;new&quot;] .node-new,
+    #os-five-states .map[data-state=&quot;ready&quot;] .node-ready,
+    #os-five-states .map[data-state=&quot;run&quot;] .node-run,
+    #os-five-states .map[data-state=&quot;blocked&quot;] .node-blocked,
+    #os-five-states .map[data-state=&quot;exit&quot;] .node-exit { background:color-mix(in srgb,var(--viz-series-1) 20%,var(--background)); }
+    #os-five-states .edge-label { position:absolute; transform:translateX(-50%); }
+    #os-five-states .label-admit { left:22%; top:42px; }
+    #os-five-states .label-dispatch { left:49%; top:30px; }
+    #os-five-states .label-timeout { left:49%; top:94px; }
+    #os-five-states .label-wait { left:58%; top:154px; }
+    #os-five-states .label-wake { left:31%; top:156px; }
+    #os-five-states .label-release { left:77%; top:42px; }
+    #os-five-states .process-marker { position:absolute; left:calc(10% + 39px); top:28px; width:26px; height:26px; display:flex; align-items:center; justify-content:center; background:var(--primary); color:var(--primary-foreground); border-radius:50%; pointer-events:none; }
+    #os-five-states .map[data-state=&quot;ready&quot;] .process-marker { left:calc(34% + 39px); }
+    #os-five-states .map[data-state=&quot;run&quot;] .process-marker { left:calc(64% + 39px); }
+    #os-five-states .map[data-state=&quot;blocked&quot;] .process-marker { left:calc(42% + 39px); top:198px; }
+    #os-five-states .map[data-state=&quot;exit&quot;] .process-marker { left:calc(90% + 39px); }
+    #os-five-states.interaction-started .process-marker { transition:left .4s ease,top .4s ease; }
     #os-five-states .step-heading { display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px; margin:8px 0; font-weight:500; }
     #os-five-states .resource-flow { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; padding:12px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
     #os-five-states .resource { display:flex; flex-direction:column; gap:6px; }
@@ -1816,6 +1841,27 @@ html&gt;body{padding:0}&lt;/style&gt;
     #os-five-states .micro-map { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin:12px 0; }
     #os-five-states .micro-map span { padding:6px 0; }
     #os-five-states .sources { margin-top:14px; }
+    @media(max-width:559px) {
+      #os-five-states .map { height:366px; }
+      #os-five-states .state-map.wide { display:none; }
+      #os-five-states .state-map.compact { display:block; }
+      #os-five-states .node-new { left:25%; top:48px; }
+      #os-five-states .node-ready { left:75%; top:48px; }
+      #os-five-states .node-run { left:75%; top:188px; }
+      #os-five-states .node-blocked { left:25%; top:188px; }
+      #os-five-states .node-exit { left:75%; top:324px; }
+      #os-five-states .label-admit { left:50%; top:23px; }
+      #os-five-states .label-dispatch { left:calc(75% + 30px); top:108px; }
+      #os-five-states .label-timeout { left:calc(75% - 34px); top:108px; }
+      #os-five-states .label-wait { left:50%; top:166px; }
+      #os-five-states .label-wake { left:43%; top:99px; }
+      #os-five-states .label-release { left:calc(75% + 27px); top:248px; }
+      #os-five-states .map[data-state=&quot;new&quot;] .process-marker { left:calc(25% + 38px); top:4px; }
+      #os-five-states .map[data-state=&quot;ready&quot;] .process-marker { left:calc(75% + 38px); top:4px; }
+      #os-five-states .map[data-state=&quot;run&quot;] .process-marker { left:calc(75% + 38px); top:144px; }
+      #os-five-states .map[data-state=&quot;blocked&quot;] .process-marker { left:calc(25% + 38px); top:144px; }
+      #os-five-states .map[data-state=&quot;exit&quot;] .process-marker { left:calc(75% + 38px); top:280px; }
+    }
     @media(max-width:440px) {
       #os-five-states .resource-flow { gap:8px; }
       #os-five-states .resource-label { flex-wrap:wrap; }
@@ -1831,8 +1877,21 @@ html&gt;body{padding:0}&lt;/style&gt;
   &lt;div class=&quot;step-heading&quot;&gt;&lt;span data-step-title&gt;① 创建阅读任务 A&lt;/span&gt;&lt;span class=&quot;text-small text-muted tabular-nums&quot; data-counter&gt;1 / 9&lt;/span&gt;&lt;/div&gt;
   &lt;div class=&quot;current-event&quot; data-event aria-live=&quot;polite&quot;&gt;创建 → 新建态&lt;/div&gt;
   &lt;div class=&quot;viz-controls&quot;&gt;&lt;button class=&quot;btn&quot; type=&quot;button&quot; data-prev disabled&gt;上一步&lt;/button&gt;&lt;button class=&quot;btn btn-primary&quot; type=&quot;button&quot; data-next&gt;接纳 A，进入就绪&lt;/button&gt;&lt;/div&gt;
-  &lt;div class=&quot;map&quot; data-map&gt;
-    &lt;svg class=&quot;state-map&quot; data-svg role=&quot;img&quot; aria-label=&quot;五状态图：新建经接纳到就绪，就绪经调度到运行，运行可因超时回到就绪、因等待事件进入阻塞、因结束进入退出，阻塞经事件到达回到就绪。&quot;&gt;&lt;/svg&gt;
+  &lt;div class=&quot;map&quot; data-map data-state=&quot;new&quot; data-edge=&quot;&quot; role=&quot;img&quot; aria-label=&quot;五状态图：新建经接纳到就绪，就绪经调度到运行，运行可因超时回到就绪、因等待事件进入阻塞、因结束进入退出，阻塞经事件到达回到就绪。&quot;&gt;
+    &lt;svg class=&quot;state-map wide&quot; viewBox=&quot;0 0 100 100&quot; preserveAspectRatio=&quot;none&quot; aria-hidden=&quot;true&quot; style=&quot;--normal-arrow:url(#five-wide-arrow);--active-arrow:url(#five-wide-active)&quot;&gt;
+      &lt;defs&gt;&lt;marker id=&quot;five-wide-arrow&quot; markerUnits=&quot;userSpaceOnUse&quot; markerWidth=&quot;1.6&quot; markerHeight=&quot;2.8&quot; refX=&quot;1.6&quot; refY=&quot;1.4&quot; orient=&quot;auto&quot;&gt;&lt;path d=&quot;M0 0 L1.6 1.4 L0 2.8 Z&quot; fill=&quot;var(--muted-foreground)&quot;/&gt;&lt;/marker&gt;&lt;marker id=&quot;five-wide-active&quot; markerUnits=&quot;userSpaceOnUse&quot; markerWidth=&quot;1.6&quot; markerHeight=&quot;2.8&quot; refX=&quot;1.6&quot; refY=&quot;1.4&quot; orient=&quot;auto&quot;&gt;&lt;path d=&quot;M0 0 L1.6 1.4 L0 2.8 Z&quot; fill=&quot;var(--viz-series-1)&quot;/&gt;&lt;/marker&gt;&lt;/defs&gt;
+      &lt;path class=&quot;edge edge-admit&quot; d=&quot;M10 24 L22 24 L34 24&quot;/&gt;&lt;path class=&quot;edge edge-dispatch&quot; d=&quot;M34 19.333 L49 19.333 L64 19.333&quot;/&gt;&lt;path class=&quot;edge edge-timeout&quot; d=&quot;M64 28.667 L49 28.667 L34 28.667&quot;/&gt;&lt;path class=&quot;edge edge-wait&quot; d=&quot;M64 24 L53 52.333 L42 80.667&quot;/&gt;&lt;path class=&quot;edge edge-wake&quot; d=&quot;M42 80.667 L38 52.333 L34 24&quot;/&gt;&lt;path class=&quot;edge edge-release&quot; d=&quot;M64 24 L77 24 L90 24&quot;/&gt;
+    &lt;/svg&gt;
+    &lt;svg class=&quot;state-map compact&quot; viewBox=&quot;0 0 100 100&quot; preserveAspectRatio=&quot;none&quot; aria-hidden=&quot;true&quot; style=&quot;--normal-arrow:url(#five-compact-arrow);--active-arrow:url(#five-compact-active)&quot;&gt;
+      &lt;defs&gt;&lt;marker id=&quot;five-compact-arrow&quot; markerUnits=&quot;userSpaceOnUse&quot; markerWidth=&quot;2.4&quot; markerHeight=&quot;2.4&quot; refX=&quot;2.4&quot; refY=&quot;1.2&quot; orient=&quot;auto&quot;&gt;&lt;path d=&quot;M0 0 L2.4 1.2 L0 2.4 Z&quot; fill=&quot;var(--muted-foreground)&quot;/&gt;&lt;/marker&gt;&lt;marker id=&quot;five-compact-active&quot; markerUnits=&quot;userSpaceOnUse&quot; markerWidth=&quot;2.4&quot; markerHeight=&quot;2.4&quot; refX=&quot;2.4&quot; refY=&quot;1.2&quot; orient=&quot;auto&quot;&gt;&lt;path d=&quot;M0 0 L2.4 1.2 L0 2.4 Z&quot; fill=&quot;var(--viz-series-1)&quot;/&gt;&lt;/marker&gt;&lt;/defs&gt;
+      &lt;path class=&quot;edge edge-admit&quot; d=&quot;M25 13.115 L50 13.115 L75 13.115&quot;/&gt;&lt;path class=&quot;edge edge-dispatch&quot; d=&quot;M81 13.115 L81 32.24 L81 51.366&quot;/&gt;&lt;path class=&quot;edge edge-timeout&quot; d=&quot;M69 51.366 L69 32.24 L69 13.115&quot;/&gt;&lt;path class=&quot;edge edge-wait&quot; d=&quot;M75 51.366 L50 51.366 L25 51.366&quot;/&gt;&lt;path class=&quot;edge edge-wake&quot; d=&quot;M25 51.366 L50 32.24 L75 13.115&quot;/&gt;&lt;path class=&quot;edge edge-release&quot; d=&quot;M75 51.366 L75 69.945 L75 88.525&quot;/&gt;
+    &lt;/svg&gt;
+    &lt;div class=&quot;state-node node-new&quot;&gt;&lt;span class=&quot;name&quot;&gt;新建&lt;/span&gt;&lt;span class=&quot;caption text-small&quot;&gt;尚未接纳&lt;/span&gt;&lt;/div&gt;
+    &lt;div class=&quot;state-node node-ready&quot;&gt;&lt;span class=&quot;name&quot;&gt;就绪&lt;/span&gt;&lt;span class=&quot;caption text-small&quot;&gt;只等 CPU&lt;/span&gt;&lt;/div&gt;
+    &lt;div class=&quot;state-node node-run&quot;&gt;&lt;span class=&quot;name&quot;&gt;运行&lt;/span&gt;&lt;span class=&quot;caption text-small&quot;&gt;正在执行&lt;/span&gt;&lt;/div&gt;
+    &lt;div class=&quot;state-node node-blocked&quot;&gt;&lt;span class=&quot;name&quot;&gt;阻塞&lt;/span&gt;&lt;span class=&quot;caption text-small&quot;&gt;等必需事件&lt;/span&gt;&lt;/div&gt;
+    &lt;div class=&quot;state-node node-exit&quot;&gt;&lt;span class=&quot;name&quot;&gt;退出&lt;/span&gt;&lt;span class=&quot;caption text-small&quot;&gt;不再执行&lt;/span&gt;&lt;/div&gt;
+    &lt;span class=&quot;edge-label label-admit text-small&quot;&gt;接纳&lt;/span&gt;&lt;span class=&quot;edge-label label-dispatch text-small&quot;&gt;调度&lt;/span&gt;&lt;span class=&quot;edge-label label-timeout text-small&quot;&gt;超时&lt;/span&gt;&lt;span class=&quot;edge-label label-wait text-small&quot;&gt;等待&lt;/span&gt;&lt;span class=&quot;edge-label label-wake text-small&quot;&gt;事件到达&lt;/span&gt;&lt;span class=&quot;edge-label label-release text-small&quot;&gt;释放&lt;/span&gt;
     &lt;span class=&quot;process-marker&quot; data-marker aria-hidden=&quot;true&quot;&gt;A&lt;/span&gt;
   &lt;/div&gt;
   &lt;div class=&quot;resource-flow&quot; aria-label=&quot;事件处理后CPU和等待队列的状态&quot;&gt;
@@ -1888,6 +1947,7 @@ html&gt;body{padding:0}&lt;/style&gt;
   &lt;script&gt;
     (()=&gt;{
       const root=document.getElementById(&#x27;os-five-states&#x27;);
+      if(!root)return;
       const q=s=&gt;root.querySelector(s),qa=s=&gt;Array.from(root.querySelectorAll(s));
       const steps=[
         {state:&#x27;new&#x27;,edge:null,title:&#x27;① 创建阅读任务 A&#x27;,event:&#x27;创建 → 新建态&#x27;,cpu:&#x27;B：后台任务&#x27;,ready:&#x27;空&#x27;,blocked:&#x27;空&#x27;,phenomenon:&#x27;启动一个简化的 PDF 阅读任务 A&#x27;,os:&#x27;给 A 分配身份编号，建立管理记录（进程控制块 PCB）&#x27;,hardware:&#x27;内存中已有管理记录；A 尚未获得 CPU&#x27;,next:&#x27;接纳 A，进入就绪&#x27;},
@@ -1902,37 +1962,24 @@ html&gt;body{padding:0}&lt;/style&gt;
       ];
       const states={new:[&#x27;新建&#x27;,&#x27;尚未接纳&#x27;],ready:[&#x27;就绪&#x27;,&#x27;只等 CPU&#x27;],run:[&#x27;运行&#x27;,&#x27;正在执行&#x27;],blocked:[&#x27;阻塞&#x27;,&#x27;等必需事件&#x27;],exit:[&#x27;退出&#x27;,&#x27;不再执行&#x27;]};
       const quizzes={timeout:{question:&#x27;A 正在运行，时间片用完，但任务还没完成。A 转为什么状态？&#x27;,correct:&#x27;ready&#x27;,step:3,reason:&#x27;时间片用完只表示本次 CPU 配额用完；任务未结束，A 仍具备运行条件。&#x27;,source:&#x27;同考点自编练习 · 参照浙工大2016/2017卷单选第4题&#x27;},wait:{question:&#x27;A 发起必须等待完成的文件读取，数据尚未就绪。A 转为什么状态？&#x27;,correct:&#x27;blocked&#x27;,step:5,reason:&#x27;A 的下一步依赖未到的数据；即使给 CPU，暂时也无法继续。&#x27;,source:&#x27;教材自编状态判断题 · 不是往年原题&#x27;},wake:{question:&#x27;A 阻塞等待文件数据，B 正在运行。A 等的数据到了，A 先转为什么状态？&#x27;,correct:&#x27;ready&#x27;,step:6,reason:&#x27;数据到达补齐执行条件；A 先就绪，获得 CPU 仍需要调度。&#x27;,source:&#x27;教材自编状态判断题 · 不是往年原题&#x27;}};
-      let step=0,answer=null,positions=null,quiz=&#x27;timeout&#x27;;
-      const saved=window.openai&amp;&amp;window.openai.widgetState;
+      let step=0,answer=null,quiz=&#x27;timeout&#x27;;
+      let saved=null;
+      try{saved=window.openai&amp;&amp;window.openai.widgetState;}catch(error){/* Host state is optional. */}
       const prior=saved&amp;&amp;saved.privateContent;
-      if(prior&amp;&amp;prior.lesson===&#x27;five-states&#x27;&amp;&amp;Number.isInteger(prior.step)&amp;&amp;prior.step&gt;=0&amp;&amp;prior.step&lt;steps.length){step=prior.step;answer=[&#x27;run&#x27;,&#x27;ready&#x27;,&#x27;blocked&#x27;].includes(prior.answer)?prior.answer:null;quiz=quizzes[prior.quiz]?prior.quiz:&#x27;timeout&#x27;;}
-      function save(){if(window.openai&amp;&amp;window.openai.setWidgetState)window.openai.setWidgetState({modelContent:{lesson:&#x27;3.2.2—3.2.3 进程创建终止与五状态&#x27;,step:step+1,state:steps[step].state,quiz,answer},privateContent:{lesson:&#x27;five-states&#x27;,step,quiz,answer}}).catch(()=&gt;{});}
+      if(prior&amp;&amp;prior.lesson===&#x27;five-states&#x27;&amp;&amp;Number.isInteger(prior.step)&amp;&amp;prior.step&gt;=0&amp;&amp;prior.step&lt;steps.length){step=prior.step;answer=[&#x27;run&#x27;,&#x27;ready&#x27;,&#x27;blocked&#x27;].includes(prior.answer)?prior.answer:null;quiz=[&#x27;timeout&#x27;,&#x27;wait&#x27;,&#x27;wake&#x27;].includes(prior.quiz)?prior.quiz:&#x27;timeout&#x27;;}
+      function save(){
+        try{
+          const host=window.openai;
+          if(!host||typeof host.setWidgetState!==&#x27;function&#x27;)return;
+          const result=host.setWidgetState({modelContent:{lesson:&#x27;3.2.2—3.2.3 进程创建终止与五状态&#x27;,step:step+1,state:steps[step].state,quiz,answer},privateContent:{lesson:&#x27;five-states&#x27;,step,quiz,answer}});
+          if(result&amp;&amp;typeof result.catch===&#x27;function&#x27;)result.catch(()=&gt;{});
+        }catch(error){/* Persisting progress must not interrupt the lesson. */}
+      }
       function draw(){
-        const width=q(&#x27;[data-map]&#x27;).clientWidth;if(!width)return;const compact=width&lt;560;
-        const half=compact?51:52,height=compact?366:300;
-        positions=compact?{new:[width*.25,48],ready:[width*.75,48],run:[width*.75,188],blocked:[width*.25,188],exit:[width*.75,324]}:{new:[width*.10,72],ready:[width*.34,72],run:[width*.64,72],blocked:[width*.42,242],exit:[width*.90,72]};
-        const p=positions;
-        const edges=compact?[
-          [&#x27;admit&#x27;,`M ${p.new[0]+half},48 L ${p.ready[0]-half},48`,width*.5,31,&#x27;接纳&#x27;],
-          [&#x27;dispatch&#x27;,`M ${p.ready[0]+16},79 L ${p.run[0]+16},157`,p.ready[0]+30,120,&#x27;调度&#x27;],
-          [&#x27;timeout&#x27;,`M ${p.run[0]-16},157 L ${p.ready[0]-16},79`,p.ready[0]-34,120,&#x27;超时&#x27;],
-          [&#x27;wait&#x27;,`M ${p.run[0]-half},188 L ${p.blocked[0]+half},188`,width*.5,174,&#x27;等待&#x27;],
-          [&#x27;wake&#x27;,`M ${p.blocked[0]+20},157 L ${p.ready[0]-22},79`,width*.43,111,&#x27;事件到达&#x27;],
-          [&#x27;release&#x27;,`M ${p.run[0]},219 L ${p.exit[0]},293`,p.run[0]+27,260,&#x27;释放&#x27;]
-        ]:[
-          [&#x27;admit&#x27;,`M ${p.new[0]+half},72 L ${p.ready[0]-half},72`,width*.22,54,&#x27;接纳&#x27;],
-          [&#x27;dispatch&#x27;,`M ${p.ready[0]+half},58 L ${p.run[0]-half},58`,width*.49,42,&#x27;调度&#x27;],
-          [&#x27;timeout&#x27;,`M ${p.run[0]-half},86 L ${p.ready[0]+half},86`,width*.49,107,&#x27;超时&#x27;],
-          [&#x27;wait&#x27;,`M ${p.run[0]-12},104 L ${p.blocked[0]+24},211`,width*.58,167,&#x27;等待事件&#x27;],
-          [&#x27;wake&#x27;,`M ${p.blocked[0]-20},211 L ${p.ready[0]+5},104`,width*.31,169,&#x27;事件到达&#x27;],
-          [&#x27;release&#x27;,`M ${p.run[0]+half},72 L ${p.exit[0]-half},72`,width*.77,54,&#x27;释放&#x27;]
-        ];
-        const svg=q(&#x27;[data-svg]&#x27;);svg.setAttribute(&#x27;viewBox&#x27;,`0 0 ${width} ${height}`);svg.setAttribute(&#x27;height&#x27;,height);
-        let html=&#x27;&lt;title&gt;五状态进程模型：A 当前处于&#x27;+states[steps[step].state][0]+&#x27;态&lt;/title&gt;&lt;defs&gt;&lt;marker id=&quot;five-arrow&quot; markerWidth=&quot;7&quot; markerHeight=&quot;7&quot; refX=&quot;6&quot; refY=&quot;3.5&quot; orient=&quot;auto&quot;&gt;&lt;path d=&quot;M0 0 L7 3.5 L0 7 Z&quot; fill=&quot;var(--border)&quot;/&gt;&lt;/marker&gt;&lt;marker id=&quot;five-arrow-active&quot; markerWidth=&quot;7&quot; markerHeight=&quot;7&quot; refX=&quot;6&quot; refY=&quot;3.5&quot; orient=&quot;auto&quot;&gt;&lt;path d=&quot;M0 0 L7 3.5 L0 7 Z&quot; fill=&quot;var(--viz-series-1)&quot;/&gt;&lt;/marker&gt;&lt;/defs&gt;&#x27;;
-        edges.forEach(([id,path,x,y,label])=&gt;{const active=steps[step].edge===id;html+=`&lt;path class=&quot;edge${active?&#x27; current&#x27;:&#x27;&#x27;}&quot; d=&quot;${path}&quot; marker-end=&quot;url(#five-arrow${active?&#x27;-active&#x27;:&#x27;&#x27;})&quot;/&gt;&lt;text x=&quot;${x}&quot; y=&quot;${y}&quot; text-anchor=&quot;middle&quot; style=&quot;font-size:12px&quot;&gt;${label}&lt;/text&gt;`;});
-        Object.entries(p).forEach(([id,[x,y]])=&gt;{const active=steps[step].state===id;html+=`&lt;rect class=&quot;node${active?&#x27; current&#x27;:&#x27;&#x27;}&quot; x=&quot;${x-half}&quot; y=&quot;${y-31}&quot; width=&quot;${half*2}&quot; height=&quot;62&quot; rx=&quot;10&quot;/&gt;&lt;text class=&quot;name&quot; x=&quot;${x}&quot; y=&quot;${y-5}&quot; text-anchor=&quot;middle&quot;&gt;${states[id][0]}&lt;/text&gt;&lt;text class=&quot;caption&quot; x=&quot;${x}&quot; y=&quot;${y+16}&quot; text-anchor=&quot;middle&quot; style=&quot;font-size:12px&quot;&gt;${states[id][1]}&lt;/text&gt;`;});
-        svg.innerHTML=html;
-        const [x,y]=p[steps[step].state];q(&#x27;[data-marker]&#x27;).style.transform=`translate(${x+half-13}px,${y-44}px)`;
+        const map=q(&#x27;[data-map]&#x27;);
+        map.setAttribute(&#x27;data-state&#x27;,steps[step].state);
+        map.setAttribute(&#x27;data-edge&#x27;,steps[step].edge||&#x27;&#x27;);
+        map.setAttribute(&#x27;aria-label&#x27;,&#x27;五状态进程模型：A 当前处于&#x27;+states[steps[step].state][0]+&#x27;态；箭头表示接纳、调度、超时、等待事件、事件到达和退出。&#x27;);
       }
       function feedback(){const z=quizzes[quiz];q(&#x27;[data-quiz]&#x27;).value=quiz;q(&#x27;[data-question]&#x27;).textContent=z.question;q(&#x27;[data-feedback]&#x27;).textContent=answer?((answer===z.correct?&#x27;判断正确。&#x27;:&#x27;应转为&#x27;+states[z.correct][0]+&#x27;态。&#x27;)+z.reason):z.source;qa(&#x27;[data-answer]&#x27;).forEach(b=&gt;b.setAttribute(&#x27;aria-pressed&#x27;,String(b.dataset.answer===answer)));}
       function render(){const s=steps[step];[[&#x27;title&#x27;,&#x27;step-title&#x27;],[&#x27;event&#x27;,&#x27;event&#x27;],[&#x27;cpu&#x27;,&#x27;cpu&#x27;],[&#x27;ready&#x27;,&#x27;ready&#x27;],[&#x27;blocked&#x27;,&#x27;blocked&#x27;],[&#x27;phenomenon&#x27;,&#x27;phenomenon&#x27;],[&#x27;os&#x27;,&#x27;os&#x27;],[&#x27;hardware&#x27;,&#x27;hardware&#x27;]].forEach(([key,attr])=&gt;q(&#x27;[data-&#x27;+attr+&#x27;]&#x27;).textContent=s[key]);q(&#x27;[data-counter]&#x27;).textContent=(step+1)+&#x27; / &#x27;+steps.length;q(&#x27;[data-prev]&#x27;).disabled=step===0;q(&#x27;[data-next]&#x27;).disabled=step===steps.length-1;q(&#x27;[data-next]&#x27;).textContent=s.next;draw();feedback();}
@@ -1940,8 +1987,8 @@ html&gt;body{padding:0}&lt;/style&gt;
       q(&#x27;[data-prev]&#x27;).addEventListener(&#x27;click&#x27;,()=&gt;{if(step&gt;0){root.classList.add(&#x27;interaction-started&#x27;);step--;render();save();}});
       qa(&#x27;[data-answer]&#x27;).forEach(b=&gt;b.addEventListener(&#x27;click&#x27;,()=&gt;{root.classList.add(&#x27;interaction-started&#x27;);answer=b.dataset.answer;step=quizzes[quiz].step;render();save();}));
       q(&#x27;[data-quiz]&#x27;).addEventListener(&#x27;change&#x27;,()=&gt;{quiz=q(&#x27;[data-quiz]&#x27;).value;answer=null;feedback();save();});
-      new ResizeObserver(()=&gt;{root.classList.remove(&#x27;interaction-started&#x27;);draw();}).observe(q(&#x27;[data-map]&#x27;));
-      window.addEventListener(&#x27;openai:set_globals&#x27;,e=&gt;{const s=e.detail&amp;&amp;e.detail.globals&amp;&amp;e.detail.globals.widgetState;const p=s&amp;&amp;s.privateContent;if(p&amp;&amp;p.lesson===&#x27;five-states&#x27;&amp;&amp;Number.isInteger(p.step)&amp;&amp;p.step&gt;=0&amp;&amp;p.step&lt;steps.length){step=p.step;answer=[&#x27;run&#x27;,&#x27;ready&#x27;,&#x27;blocked&#x27;].includes(p.answer)?p.answer:null;quiz=quizzes[p.quiz]?p.quiz:&#x27;timeout&#x27;;render();}});
+      window.addEventListener(&#x27;resize&#x27;,()=&gt;root.classList.remove(&#x27;interaction-started&#x27;));
+      window.addEventListener(&#x27;openai:set_globals&#x27;,e=&gt;{const s=e.detail&amp;&amp;e.detail.globals&amp;&amp;e.detail.globals.widgetState;const p=s&amp;&amp;s.privateContent;if(p&amp;&amp;p.lesson===&#x27;five-states&#x27;&amp;&amp;Number.isInteger(p.step)&amp;&amp;p.step&gt;=0&amp;&amp;p.step&lt;steps.length){step=p.step;answer=[&#x27;run&#x27;,&#x27;ready&#x27;,&#x27;blocked&#x27;].includes(p.answer)?p.answer:null;quiz=[&#x27;timeout&#x27;,&#x27;wait&#x27;,&#x27;wake&#x27;].includes(p.quiz)?p.quiz:&#x27;timeout&#x27;;render();}});
       render();
     })();
   &lt;/script&gt;
